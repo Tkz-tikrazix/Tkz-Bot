@@ -1,36 +1,36 @@
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, Events } = require('discord.js');
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const fs = require('node:fs');
 const config = require('./config.json');
 
 // Handling commands
 
-client.commands = new Collection();
+client.commands = new Collection
 
 const loadCommands = (dir = './commands/') => {
     fs.readdirSync(dir).forEach(dirs => {
-        const commands = fs.readdir(`${dir}/${dirs}/`).filter(files => files.endsWith('.js'));
+        const commandFiles = fs.readdirSync(`${dir}/${dirs}/`).filter(files => files.endsWith(".js"))
 
-        for (const file of commands) {
+        for (const file of commandFiles) {
             const command = require(`${dir}/${dirs}/${file}`);
             client.commands.set(command.data.name, command);
         };
     });
 };
 
-client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand()) return;
+client.on(Events.InteractionCreate, async interaction => {
+	if (!interaction.isChatInputCommand()) return;
 
-    const command = client.commands.get(interaction.commandName);
+	const command = client.commands.get(interaction.commandName);
 
-    if (!command) return;
+	if (!command) return;
 
-    try {
-        await command.execute(interaction);
-    } catch (error) {
-        console.error(error);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-    }
+	try {
+		await command.execute(interaction);
+	} catch (error) {
+		console.error(error);
+		await interaction.reply({ content: 'Une erreur s\'est produite lors de l\'exécution de cette commande !', ephemeral: true });
+	}
 });
 
 // Handling events

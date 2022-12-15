@@ -1,35 +1,35 @@
 const { REST, Routes } = require('discord.js');
-const fs = require('node:fs');
 const config = require('./config.json');
+const fs = require('node:fs');
 
 const commands = [];
 
-const deployCommands = (dir = './commands/') => {
+const deployCommands = (dir = './commands') => {
     fs.readdirSync(dir).forEach(dirs => {
-        const commands = fs.readdirSync(`${dir}/${dirs}/`).filter(files => files.endsWith('.js'));
+        const commandsFiles = fs.readdirSync(`${dir}/${dirs}/`).filter(files => files.endsWith(".js"));
 
-        for (const command of commands) {
-            const cmd = require(`${dir}/${dirs}/${command}`);
-            commands.push(cmd.data.toJSON());
-        };
+        for (const file of commandsFiles) {
+            const command = require(`${dir}/${dirs}/${file}`);
+            commands.push(command.data.toJSON());
+        }
 
         const rest = new REST({ version: '10' }).setToken(config.token);
 
         (async () => {
             try {
-                console.log('Started refreshing application (/) commands.');
-
-                await rest.put(
-                    Routes.applicationCommands(config.clientID),
+                console.log(`Started refreshing ${commands.length} application (/) commands.`);
+        
+                const data = await rest.put(
+                    Routes.applicationGuildCommands(config.clientId, config.guildId),
                     { body: commands },
                 );
-
-                console.log('Successfully reloaded application (/) commands.');
+        
+                console.log(`Successfully reloaded ${data.length} application (/) commands.`);
             } catch (error) {
                 console.error(error);
             }
         })();
-    });
-};
+    })
+}
 
 deployCommands();
